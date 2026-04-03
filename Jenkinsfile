@@ -72,9 +72,30 @@ pipeline {
             sh '''
             kubectl apply -f prometheus.yaml
             kubectl apply -f grafana.yaml
+            # Deploy Node Exporter 
+            kubectl apply -f node-exporter.yaml 
+            # Restart Prometheus to pick up config changes 
+            kubectl rollout restart deployment/prometheus
             '''
         }
       }
     }  
   }
+    post {
+        success {
+            emailext(
+                subject: "Jenkins Job '${env.JOB_NAME}' Success",
+                body: "Good news! Job '${env.JOB_NAME}' (#${env.BUILD_NUMBER}) succeeded.\n\nCheck console output at ${env.BUILD_URL}",
+                to: "sujanvijay2311@gmail.com"
+            )
+        }
+
+        failure {
+            emailext(
+                subject: "Jenkins Job '${env.JOB_NAME}' Failed",
+                body: "Alert! Job '${env.JOB_NAME}' (#${env.BUILD_NUMBER}) failed.\n\nCheck console output at ${env.BUILD_URL}",
+                to: "sujanvijay2311@gmail.com"
+            )
+        }
+    }
 }
