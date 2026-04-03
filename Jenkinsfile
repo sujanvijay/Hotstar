@@ -12,12 +12,12 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'sujangit', url: 'https://github.com/sujanvijay/Hotstar.git']])
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'sujan-git', url: 'https://github.com/sujanvijay/Hotstar.git']])
             }
         }
         stage('BUILD') {
         steps {
-            sh 'mvn clean package -DskipTests'
+            sh 'mvn clean install -DskipTests'
         }
       }
       stage('JENKINS TO NEXUS') {
@@ -56,7 +56,7 @@ pipeline {
             docker push sujanvijay/myapp:latest
             '''
         }
-       }
+      }
       }
       stage('Deploy to Kubernetes') {
     steps {
@@ -66,5 +66,15 @@ pipeline {
             }
         }
     }
+      stage('Deploy Monitoring Stack') {
+    steps {
+        withKubeConfig(credentialsId: 'kubeconfig') {
+            sh '''
+            kubectl apply -f prometheus.yaml
+            kubectl apply -f grafana.yaml
+            '''
+        }
+      }
+    }  
   }
 }
